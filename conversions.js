@@ -24,10 +24,10 @@ export async function identity(blob, ffmpeg) {
     }
 }
 
-export async function highPitch(blob, ffmpeg) {
+export async function changePitch(blob, ffmpeg, amount) {
     try {
         await ffmpeg.FS('writeFile', 'input.wav', await FFmpeg.fetchFile(blob));
-        await ffmpeg.run('-i', 'input.wav', '-af', 'asetrate=44100*1.25,aresample=44100,atempo=0.8', 'output.ogg');
+        await ffmpeg.run('-i', 'input.wav', '-af', `asetrate=44100*${amount},aresample=44100,atempo=${1/amount}`, 'output.ogg');
         const data = ffmpeg.FS('readFile', 'output.ogg');
         const oggBlob = new Blob([data.buffer], { type: 'audio/ogg' });
         console.log('Audio pitch change successful.');
@@ -38,10 +38,10 @@ export async function highPitch(blob, ffmpeg) {
     }
 }
 
-export async function lowFrequencies(blob, ffmpeg) {
+export async function changeLowFrequencies(blob, ffmpeg, frequency) {
     try {
         await ffmpeg.FS('writeFile', 'input.wav', await FFmpeg.fetchFile(blob));
-        await ffmpeg.run('-i', 'input.wav', '-af', 'lowpass=f=300', 'output.ogg');
+        await ffmpeg.run('-i', 'input.wav', '-af', `lowpass=f=${frequency}`, 'output.ogg');
         const data = ffmpeg.FS('readFile', 'output.ogg');
         const oggBlob = new Blob([data.buffer], { type: 'audio/ogg' });
         console.log('Low frequencies filter applied successfully.');

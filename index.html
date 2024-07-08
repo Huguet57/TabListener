@@ -7,13 +7,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.5/dist/ffmpeg.min.js"></script>
     <script type="module">
         import TabAudioProcessor from './TabAudioProcessor.js';
-        import { highPitch, lowFrequencies, identity } from './conversions.js';
+        import { identity, changePitch, changeLowFrequencies } from './conversions.js';
 
         const ffmpeg = FFmpeg;
 
         const conversions = {
-            'highPitch': highPitch,
-            'lowFrequencies': lowFrequencies,
+            'changeHighPitch': changePitch,
+            'changeLowFrequencies': changeLowFrequencies,
             'identity': identity
         }
 
@@ -35,9 +35,36 @@
             document.getElementById('stop-recording').disabled = true;
         };
 
+        const pitchSliderContainer = document.getElementById('pitch-slider-container');
+        const pitchSlider = document.getElementById('pitch-slider');
+        const pitchValue = document.getElementById('pitch-value');
+        const frequencySliderContainer = document.getElementById('frequency-slider-container');
+        const frequencySlider = document.getElementById('frequency-slider');
+        const frequencyValue = document.getElementById('frequency-value');
+
+        pitchSlider.oninput = (event) => {
+            pitchValue.textContent = event.target.value;
+        };
+
+        frequencySlider.oninput = (event) => {
+            frequencyValue.textContent = event.target.value;
+        };
+
         document.getElementById('conversion-select').onchange = (event) => {
             const selectedConversion = event.target.value;
-            processor.setConvertFunction(conversions[selectedConversion]);
+
+            pitchSliderContainer.style.display = 'none';
+            frequencySliderContainer.style.display = 'none';
+
+            if (selectedConversion === 'changePitch') {
+                pitchSliderContainer.style.display = 'block';
+                processor.setConvertFunction((blob, ffmpeg) => changePitch(blob, ffmpeg, pitchSlider.value));
+            } else if (selectedConversion === 'changeFrequencies') {
+                frequencySliderContainer.style.display = 'block';
+                processor.setConvertFunction((blob, ffmpeg) => changeLowFrequencies(blob, ffmpeg, frequencySlider.value));
+            } else {
+                processor.setConvertFunction(conversions[selectedConversion]);
+            }
         };
     </script>
 </head>
@@ -51,10 +78,20 @@
     <label for="conversion-select">Choose a conversion:</label>
     <select id="conversion-select">
         <option value="identity">Identity</option>
-        <option value="highPitch">High Pitch</option>
-        <option value="lowFrequencies">Low Frequencies</option>
+        <option value="changePitch">Change Pitch</option>
+        <option value="changeFrequencies">Change Frequencies</option>
     </select>
 
-    <div id="recordings"></div>
+    <div id="pitch-slider-container" style="display: none;">
+        <label for="pitch-slider">Pitch Amount:</label>
+        <input type="range" id="pitch-slider" name="pitch-slider" min="0.5" max="2.0" step="0.05" value="1.0">
+        <span id="pitch-value">1.0</span>
+    </div>
+
+    <div id="frequency-slider-container" style="display: none;">
+        <label for="frequency-slider">Frequency Amount:</label>
+        <input type="range" id="frequency-slider" name="frequency-slider" min="100" max="10000" step="100" value="1000">
+        <span id="frequency-value">1000</span>
+    </div>
 </body>
 </html>
