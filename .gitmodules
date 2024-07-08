@@ -1,0 +1,3 @@
+[submodule "RecordRTC"]
+	path = RecordRTC
+	url = https://github.com/muaz-khan/RecordRTC.git
