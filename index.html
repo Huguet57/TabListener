@@ -72,6 +72,34 @@
             }
         }
 
+        async function convertAudioOnBrowserTest(blob) {
+            try {
+                // Write the input file to the FFmpeg file system
+                ffmpeg.FS('writeFile', 'input.wav', await fetchFile(blob));
+                
+                // Run the FFmpeg command to change the pitch of the file
+                await ffmpeg.run('-i', 'input.wav', '-af', 'asetrate=44100*1.25,aresample=44100,atempo=0.8', 'output.ogg');
+                
+                // Read the output file from the FFmpeg file system
+                const data = ffmpeg.FS('readFile', 'output.ogg');
+                
+                // Create a Blob from the output file data
+                const oggBlob = new Blob([data.buffer], { type: 'audio/ogg' });
+                
+                // Convert the Blob to an ArrayBuffer
+                const arrayBuffer = await oggBlob.arrayBuffer();
+                
+                // Log success message
+                console.log('Audio pitch change successful.');
+                
+                // Return the ArrayBuffer
+                return arrayBuffer;
+            } catch (error) {
+                console.error('Error during audio pitch change:', error);
+                return null;
+            }
+        }
+
         function playBuffer() {
             if (audioBuffers.length > 0 && playback) {
                 const buffer = audioBuffers.shift();
@@ -101,8 +129,11 @@
                 const oggBlob = new Blob([data.buffer], { type: 'audio/ogg' });
                 
                 console.log('Processed audio retrieved.');
-                const arrayBuffer = await oggBlob.arrayBuffer();
+
+                // const arrayBuffer = await oggBlob.arrayBuffer();
+                const arrayBuffer = await convertAudioOnBrowserTest(blob);
                 // const arrayBuffer = await convertAudioViaAPI(blob);
+
                 const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
                 audioBuffers.push(audioBuffer);
 
