@@ -1,6 +1,5 @@
-
 class TabAudioProcessor {
-    constructor(convert_fn) {
+    constructor(ffmpeg, convert_fn) {
         this.recorder = null;
         this.mediaStream = null;
         this.audioContext = null;
@@ -11,13 +10,13 @@ class TabAudioProcessor {
 
         this.convert_fn = convert_fn;
 
+        this.FFmpeg = ffmpeg;
         this.ffmpeg = null;
         this.initFFmpeg();
     }
 
     async initFFmpeg() {
-        const { createFFmpeg } = FFmpeg;
-        this.ffmpeg = createFFmpeg({
+        this.ffmpeg = this.FFmpeg.createFFmpeg({
             log: false,
             logger: () => {},
             progress: () => {}
@@ -84,7 +83,7 @@ class TabAudioProcessor {
 
     async processAudio(blob) {
         try {
-            await this.ffmpeg.FS('writeFile', 'input.wav', await FFmpeg.fetchFile(blob));
+            await this.ffmpeg.FS('writeFile', 'input.wav', await this.FFmpeg.fetchFile(blob));
             this.processing = true;
             await this.ffmpeg.run('-i', 'input.wav', 'output.ogg');
             this.processing = false;
@@ -94,7 +93,7 @@ class TabAudioProcessor {
             console.log('Processed audio retrieved.');
 
             // Convert the audio using the convert function
-            const arrayBuffer = await this.convert_fn(blob);
+            const arrayBuffer = await this.convert_fn(blob, this.ffmpeg);
 
             const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
             this.audioBuffers.push(audioBuffer);

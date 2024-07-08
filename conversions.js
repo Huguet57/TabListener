@@ -1,7 +1,7 @@
-export async function convertAudioViaAPI(blob) {
+export async function convertAudioViaAPI(blob, ffmpeg, api_url='https://api.instr.io:20006/convert') {
     const formData = new FormData();
     formData.append('file', blob, 'audio.ogg');
-    const response = await fetch('https://api.instr.io:20006/convert', {
+    const response = await fetch(api_url, {
         method: 'PUT',
         body: formData
     });
@@ -14,11 +14,11 @@ export async function convertAudioViaAPI(blob) {
     }
 }
 
-export async function convertAudioOnBrowser(blob) {
+export async function convertAudioOnBrowser(blob, ffmpeg) {
     try {
-        await this.ffmpeg.FS('writeFile', 'input.wav', await FFmpeg.fetchFile(blob));
-        await this.ffmpeg.run('-i', 'input.wav', '-af', 'asetrate=44100*1.25,aresample=44100,atempo=0.8', 'output.ogg');
-        const data = this.ffmpeg.FS('readFile', 'output.ogg');
+        await ffmpeg.FS('writeFile', 'input.wav', await FFmpeg.fetchFile(blob));
+        await ffmpeg.run('-i', 'input.wav', '-af', 'asetrate=44100*1.25,aresample=44100,atempo=0.8', 'output.ogg');
+        const data = ffmpeg.FS('readFile', 'output.ogg');
         const oggBlob = new Blob([data.buffer], { type: 'audio/ogg' });
         console.log('Audio pitch change successful.');
         return await oggBlob.arrayBuffer();

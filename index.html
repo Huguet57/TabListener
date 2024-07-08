@@ -9,7 +9,8 @@
         import TabAudioProcessor from './TabAudioProcessor.js';
         import { convertAudioOnBrowser } from './conversions.js';
 
-        const processor = new TabAudioProcessor(convertAudioOnBrowser);
+        const ffmpeg = FFmpeg;
+        const processor = new TabAudioProcessor(ffmpeg, convertAudioOnBrowser);
 
         document.getElementById('start-recording').onclick = async () => {
             try {
