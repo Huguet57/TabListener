@@ -7,8 +7,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.5/dist/ffmpeg.min.js"></script>
     <script type="module">
         import TabAudioProcessor from './TabAudioProcessor.js';
+        import { convertAudioOnBrowser } from './conversions.js';
 
-        const processor = new TabAudioProcessor();
+        const processor = new TabAudioProcessor(convertAudioOnBrowser);
 
         document.getElementById('start-recording').onclick = async () => {
             try {

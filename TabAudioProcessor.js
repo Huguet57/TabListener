@@ -1,6 +1,6 @@
 
 class TabAudioProcessor {
-    constructor() {
+    constructor(convert_fn) {
         this.recorder = null;
         this.mediaStream = null;
         this.audioContext = null;
@@ -8,6 +8,8 @@ class TabAudioProcessor {
         this.audioBuffers = [];
         this.playback = false;
         this.processing = false;
+
+        this.convert_fn = convert_fn;
 
         this.ffmpeg = null;
         this.initFFmpeg();
@@ -91,9 +93,8 @@ class TabAudioProcessor {
             const oggBlob = new Blob([data.buffer], { type: 'audio/ogg' });
             console.log('Processed audio retrieved.');
 
-            // Choose one of the conversion methods:
-            const arrayBuffer = await this.convertAudioOnBrowser(blob);
-            // const arrayBuffer = await this.convertAudioViaAPI(oggBlob);
+            // Convert the audio using the convert function
+            const arrayBuffer = await this.convert_fn(blob);
 
             const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
             this.audioBuffers.push(audioBuffer);
@@ -107,36 +108,6 @@ class TabAudioProcessor {
             }
         } catch (error) {
             console.error('Error during the processing', error);
-        }
-    }
-
-    async convertAudioViaAPI(blob) {
-        const formData = new FormData();
-        formData.append('file', blob, 'audio.ogg');
-        const response = await fetch('https://api.instr.io:20006/convert', {
-            method: 'PUT',
-            body: formData
-        });
-
-        if (response.ok) {
-            return response.arrayBuffer();
-        } else {
-            console.error("Failed to convert audio.");
-            return null;
-        }
-    }
-
-    async convertAudioOnBrowser(blob) {
-        try {
-            await this.ffmpeg.FS('writeFile', 'input.wav', await FFmpeg.fetchFile(blob));
-            await this.ffmpeg.run('-i', 'input.wav', '-af', 'asetrate=44100*1.25,aresample=44100,atempo=0.8', 'output.ogg');
-            const data = this.ffmpeg.FS('readFile', 'output.ogg');
-            const oggBlob = new Blob([data.buffer], { type: 'audio/ogg' });
-            console.log('Audio pitch change successful.');
-            return await oggBlob.arrayBuffer();
-        } catch (error) {
-            console.error('Error during audio pitch change:', error);
-            return null;
         }
     }
 
