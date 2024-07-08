@@ -7,10 +7,17 @@
     <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.5/dist/ffmpeg.min.js"></script>
     <script type="module">
         import TabAudioProcessor from './TabAudioProcessor.js';
-        import { convertAudioOnBrowser } from './conversions.js';
+        import { highPitch, lowFrequencies, identity } from './conversions.js';
 
         const ffmpeg = FFmpeg;
-        const processor = new TabAudioProcessor(ffmpeg, convertAudioOnBrowser);
+
+        const conversions = {
+            'highPitch': highPitch,
+            'lowFrequencies': lowFrequencies,
+            'identity': identity
+        }
+
+        const processor = new TabAudioProcessor(ffmpeg, identity);
 
         document.getElementById('start-recording').onclick = async () => {
             try {
@@ -27,6 +34,11 @@
             document.getElementById('start-recording').disabled = false;
             document.getElementById('stop-recording').disabled = true;
         };
+
+        document.getElementById('conversion-select').onchange = (event) => {
+            const selectedConversion = event.target.value;
+            processor.setConvertFunction(conversions[selectedConversion]);
+        };
     </script>
 </head>
 <body>
@@ -35,6 +47,13 @@
     <p>1. click [choose music here] and select the tab your music is playing</p>
     <p>2. right click that browser tab and click mute site</p>
     <p>3. wait 10 seconds</p>
+
+    <label for="conversion-select">Choose a conversion:</label>
+    <select id="conversion-select">
+        <option value="identity">Identity</option>
+        <option value="highPitch">High Pitch</option>
+        <option value="lowFrequencies">Low Frequencies</option>
+    </select>
 
     <div id="recordings"></div>
 </body>

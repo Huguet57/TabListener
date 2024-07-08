@@ -81,6 +81,10 @@ class TabAudioProcessor {
         }
     }
 
+    setConvertFunction(convert_fn) {
+        this.convert_fn = convert_fn;
+    }
+
     async processAudio(blob) {
         try {
             await this.ffmpeg.FS('writeFile', 'input.wav', await this.FFmpeg.fetchFile(blob));
