@@ -1,4 +1,4 @@
-export async function convertAudioViaAPI(blob, ffmpeg, api_url='https://api.instr.io:20006/convert') {
+export async function convertAudioViaAPI(blob, ffmpeg, api_url) {
     const formData = new FormData();
     formData.append('file', blob, 'audio.ogg');
     const response = await fetch(api_url, {
